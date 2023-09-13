@@ -1,0 +1,39 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "internalConsole, Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "${file}",
+            "console": "internalConsole",
+            "justMyCode": false,
+            "cwd": "${fileDirname}",
+            "env": {
+                "PYTHONPATH": "C:\\Users\\jajohns\\Files\\Research\\hazelbean\\hazelbean_dev;C:\\Users\\jajohns\\seals\\seals_dev;C:\\Users\\jajohns\\Files\\Research\\cge\\gtap_invest\\gtap_invest_dev",
+            }
+        },
+        {
+            "name": "DebugConsole Profiler",
+            "type": "python",
+            "request": "launch",
+            "module": "cProfile",
+            "args": [
+                "-o",
+                "${fileDirname}/tmp.prof",
+                "${file}"
+            ],
+            // "program": "${file}",
+            "console": "internalConsole",
+            "justMyCode": false,
+            "cwd": "${fileDirname}",
+            "env": {
+                "PYTHONPATH": "C:\\Users\\jajohns\\Files\\Research\\hazelbean\\hazelbean_dev;C:\\Users\\jajohns\\seals\\seals_dev;C:\\Users\\jajohns\\Files\\Research\\cge\\gtap_invest\\gtap_invest_dev",
+            },
+        },
+
+    ]
+}
