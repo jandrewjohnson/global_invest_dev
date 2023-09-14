@@ -13,7 +13,7 @@
             "justMyCode": false,
             "cwd": "${fileDirname}",
             "env": {
-                "PYTHONPATH": "C:\\Users\\jajohns\\Files\\Research\\hazelbean\\hazelbean_dev;C:\\Users\\jajohns\\seals\\seals_dev;C:\\Users\\jajohns\\Files\\Research\\cge\\gtap_invest\\gtap_invest_dev",
+                "PYTHONPATH": "C:\\Users\\jajohns\\Files\\Research\\hazelbean\\hazelbean_dev;C:\\Users\\jajohns\\seals\\seals_dev;C:\\Users\\jajohns\\Files\\Research\\cge\\gtap_invest\\gtap_invest_dev;C:\\Users\\jajohns\\Files\\Research\\cge\\gtappy\\gtappy_dev;C:\\Users\\jajohns\\Files\\Research\\global_invest\\global_invest_dev",
             }
         },
         {
@@ -31,8 +31,7 @@
             "justMyCode": false,
             "cwd": "${fileDirname}",
             "env": {
-                "PYTHONPATH": "C:\\Users\\jajohns\\Files\\Research\\hazelbean\\hazelbean_dev;C:\\Users\\jajohns\\seals\\seals_dev;C:\\Users\\jajohns\\Files\\Research\\cge\\gtap_invest\\gtap_invest_dev",
-            },
+                "PYTHONPATH": "C:\\Users\\jajohns\\Files\\Research\\hazelbean\\hazelbean_dev;C:\\Users\\jajohns\\seals\\seals_dev;C:\\Users\\jajohns\\Files\\Research\\cge\\gtap_invest\\gtap_invest_dev;C:\\Users\\jajohns\\Files\\Research\\cge\\gtappy\\gtappy_dev;C:\\Users\\jajohns\\Files\\Research\\global_invest\\global_invest_dev",            },
         },
 
     ]
