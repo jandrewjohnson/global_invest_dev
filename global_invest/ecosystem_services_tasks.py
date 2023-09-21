@@ -1,6 +1,7 @@
 import os, sys
 import hazelbean as hb
 import seals.seals_utils as seals_utils
+import pandas as pd
 import global_invest
 from global_invest import ecosystem_services_functions
 # from seals import seals_utils
@@ -8,7 +9,7 @@ from global_invest import ecosystem_services_functions
 def ecosystem_services(p):
     pass # Just to generate a folder
 
-def carbon_storage(p):
+def carbon_storage_biophysical(p):
     """Calculate carbon storage presentfrom LULC maps."""
 
     p.exhaustive_carbon_table_path = os.path.join(p.base_data_dir, "global_invest", "carbon", "exhaustive_carbon_table.csv")
@@ -67,9 +68,106 @@ def carbon_storage(p):
                         ecosystem_services_functions.carbon_storage_ipcc_tier_1(current_lulc_path, current_carbon_zones_path, p.exhaustive_carbon_table_path, carbon_Mg_per_ha_output_path)
 
 
-                
 
-def pollination(p):
+def carbon_storage_economic(p):
+    """Converts carbon storage biophysical outputs into per-econ region shockfiles."""
+
+    p.carbon_storage_economic_csv_path = os.path.join(p.cur_dir, 'carbon_storage_economic.csv')
+    p.carbon_storage_shockfile_csv_path = os.path.join(p.cur_dir, 'carbon_storage_shockfile.csv')
+
+    if p.run_this:      
+
+        csvs_to_merge = []    
+        gpkgs_to_merge = []
+            
+        # First iterate over scenarios to calculate the biophysical carbon storage per LULC map
+        # including the basemaps
+        for index, row in p.scenarios_df.iterrows():
+
+            seals_utils.assign_df_row_to_object_attributes(p, row)
+            p.L.info('Calculating carbon storage economic shock on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
+
+            if p.scenario_type == 'baseline':
+                for year in p.base_years:
+                    current_carbon_Mg_per_ha_output_path = os.path.join(p.carbon_storage_biophysical_dir, 'carbon_Mg_per_ha_' + p.model_label + '_' + str(year) + '.tif')
+        
+                    vector_output_path = os.path.join(p.cur_dir, 'carbon_Mg_per_ha_' + p.model_label + '_' + str(year) + '.gpkg')
+                    csv_output_path = os.path.join(p.cur_dir, 'carbon_Mg_per_ha_' + p.model_label + '_' + str(year) + '.csv')
+
+                    csvs_to_merge.append(csv_output_path)
+                    gpkgs_to_merge.append(vector_output_path)                                                  
+                    
+                    if not hb.path_exists(vector_output_path):
+
+                        gdf = hb.zonal_statistics(current_carbon_Mg_per_ha_output_path,
+                                p.aoi,
+                                id_column_label=None,
+                                zone_ids_raster_path=None,
+                                stats_to_retrieve='sums',
+                                csv_output_path=csv_output_path,
+                                vector_output_path=vector_output_path)
+
+            elif p.scenario_type != 'baseline':
+                for year in p.years:
+                                
+                    current_carbon_Mg_per_ha_output_path = os.path.join(p.carbon_storage_biophysical_dir, 'carbon_Mg_per_ha_' + p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(year) + '.tif')
+        
+                    vector_output_path = os.path.join(p.cur_dir, 'carbon_Mg_per_ha_' + p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(year) + '.gpkg')
+                    csv_output_path = os.path.join(p.cur_dir, 'carbon_Mg_per_ha_' + p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(year) + '.csv')                    
+                    
+                    csvs_to_merge.append(csv_output_path)
+                    gpkgs_to_merge.append(vector_output_path)                                                  
+                    
+                    if not hb.path_exists(vector_output_path):
+
+                        gdf = hb.zonal_statistics(current_carbon_Mg_per_ha_output_path,
+                                p.aoi,
+                                id_column_label=None,
+                                zone_ids_raster_path=None,
+                                stats_to_retrieve='sums',
+                                csv_output_path=csv_output_path,
+                                vector_output_path=vector_output_path)
+
+
+        if not hb.path_exists(p.carbon_storage_economic_csv_path):
+            hb.df_merge_list_of_csv_paths(csvs_to_merge, p.carbon_storage_economic_csv_path, on='generated_ids', column_suffix='ignore', verbose=False)
+                        
+        carbon_df = pd.read_csv(p.carbon_storage_economic_csv_path)
+    
+        # Next iterate over the non-baseline scenarios and compare them with the appropriate baseline 
+        # to generate percent change.
+        shock_df = pd.DataFrame(carbon_df['generated_ids'])
+        for index, row in p.scenarios_df.iterrows():
+            seals_utils.assign_df_row_to_object_attributes(p, row)
+            p.L.info('Calculating carbon storage shockfile on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
+    
+            if p.scenario_type != 'baseline':
+                print('Analyzing', p.scenario_type, 'which has a baseline scenario of', p.baseline_reference_label)
+                        
+                for year_c, year in enumerate(p.years):
+                    
+                    if year_c == 0:
+                        previous_year = p.key_base_year
+                        current_model_label = p.scenarios_df.loc[p.scenarios_df['model_label'] == p.baseline_reference_label]['model_label']
+                        previous_scenario_label = current_model_label + '_' + str(previous_year)                        
+                    else:
+                        previous_year = p.years[year_c - 1]
+                        previous_scenario_label = p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(previous_year)   
+                    previous_carbon_label = 'carbon_Mg_per_ha_' + previous_scenario_label + '_sums'
+                    current_carbon_label = 'carbon_Mg_per_ha_' + p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(year) + '_sums'
+                    new_label = 'carbon_shock' + p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(year)
+
+
+                    carbon_df[new_label] = (carbon_df[current_carbon_label] - carbon_df[previous_carbon_label]) / carbon_df[previous_carbon_label]
+                    subset_df = carbon_df[['generated_ids', new_label]]
+                    shock_df = hb.df_merge(shock_df, subset_df, on='generated_ids', verbose=True)
+
+        shock_df.to_csv(p.carbon_storage_shockfile_csv_path, index=False)
+
+        # START HERE: the 2050 compared to baseline is coming up null. Fix this and then use it as a shockfile in gtap.
+            
+       
+def pollination_biophysical(p):
     """Calculate carbon storage presentfrom LULC maps."""
 
     p.exhaustive_carbon_table_path = os.path.join(p.base_data_dir, "global_invest", "carbon", "exhaustive_carbon_table.csv")
@@ -152,10 +250,14 @@ def pollination(p):
                                 csv_output_path=csv_output_path,
                                 vector_output_path=vector_output_path)
         
-        # Merge all the csvs and gpkg files
-        merged_csv_output_path = os.path.join(p.cur_dir, 'pollination_sufficiency.csv')
-        if not hb.path_exists(merged_csv_output_path):
-            hb.df_merge_list_of_csv_paths(csvs_to_merge, merged_csv_output_path, on='generated_ids', column_suffix='ignore', verbose=False)
+        # Merge all the csvs and gpkg files#
+
+        # NOTE This currently doesn't make sense to sum up until after i run the pollination_economic function
+        skip = True
+        if not skip:
+            merged_csv_output_path = os.path.join(p.cur_dir, 'pollination_sufficiency.csv')
+            if not hb.path_exists(merged_csv_output_path):
+                hb.df_merge_list_of_csv_paths(csvs_to_merge, merged_csv_output_path, on='generated_ids', column_suffix='ignore', verbose=False)
 
 def pollination_economic(p):
     """Convert pollination into shockfile."""
