@@ -20,6 +20,8 @@ def carbon_storage_biophysical(p):
 
     p.carbon_storage_csv_path = os.path.join(p.cur_dir, 'carbon_storage.csv')
 
+    p.aoi_path = os.path.join(p.project_dir, 'intermediate\project_aoi')
+
     # TODOO I may want to redo the run_subset_tiles functionality to instead just require a small aoi 
     # polygon (which would in principle only cover 1 tile. This is because the definition of BB gets confused
     # but also i would need to specify the difference between bb_pyramid vs bb_vector. Think about this.
@@ -56,13 +58,18 @@ def carbon_storage_biophysical(p):
                     vector_output_path = os.path.join(p.cur_dir, 'carbon_Mg_per_ha_' + p.model_label + '_' + str(year) + '.gpkg')
                     csv_output_path = os.path.join(p.cur_dir, 'carbon_Mg_per_ha_' + p.model_label + '_' + str(year) + '.csv')
 
+                    # Above two current path is "\intermediate\ecosystem_services\carbon_storage_biophysical\carbon_Mg_per_ha_luh2-message_2017.gpkg"
+                    # And the p.aoi is just 'RWA', so it is not pointing to anything.
+                    
+                    # Since "aoi_RWA.gpkg" is located at "\test_habitat2\intermediate\project_aoi" 
+                    # I am changing the line below to point to that location.
                     csvs_to_merge.append(csv_output_path)
                     gpkgs_to_merge.append(vector_output_path)                                                  
                     
                     if not hb.path_exists(vector_output_path):
 
                         gdf = hb.zonal_statistics(carbon_Mg_per_ha_output_path,
-                                p.aoi,
+                                os.path.join(p.aoi_path, 'aoi_' + p.aoi + '.gpkg'), #change made here
                                 id_column_label=None,
                                 zone_ids_raster_path=None,
                                 stats_to_retrieve='sums',
@@ -98,7 +105,7 @@ def carbon_storage_biophysical(p):
                     if not hb.path_exists(vector_output_path):
 
                         gdf = hb.zonal_statistics(carbon_Mg_per_ha_output_path,
-                                p.aoi,
+                                os.path.join(p.aoi_path, 'aoi_' + p.aoi + '.gpkg'), #change also made here
                                 id_column_label=None,
                                 zone_ids_raster_path=None,
                                 stats_to_retrieve='sums',
