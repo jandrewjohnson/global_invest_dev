@@ -34,7 +34,7 @@ def carbon_storage_biophysical(p):
             # NOTE THAT WE CALL THE SEALS_UTILS version of this function and not the hazelbean function
             # because we are assuming the structure of a seals scenarios.csv
             seals_utils.assign_df_row_to_object_attributes(p, row)
-            p.L.info('Calculating carbon storage on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
+            hb.log('Calculating carbon storage on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
 
             if p.scenario_type == 'baseline':
                 for year in p.base_years:
@@ -125,7 +125,7 @@ def carbon_storage_economic(p):
         shock_df = pd.DataFrame(carbon_df['generated_ids'])
         for index, row in p.scenarios_df.iterrows():
             seals_utils.assign_df_row_to_object_attributes(p, row)
-            p.L.info('Calculating carbon storage shockfile on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
+            hb.log('Calculating carbon storage shockfile on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
     
             if p.scenario_type != 'baseline':
                 print('Analyzing', p.scenario_type, 'which has a baseline scenario of', p.baseline_reference_label)
@@ -183,7 +183,7 @@ def pollination_biophysical(p):
             
         for index, row in p.scenarios_df.iterrows():
             seals_utils.assign_df_row_to_object_attributes(p, row)
-            p.L.info('Calculating carbon storage on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
+            hb.log('Calculating carbon storage on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
 
             if p.scenario_type == 'baseline':
                 for year in p.base_years:
@@ -192,7 +192,7 @@ def pollination_biophysical(p):
                     current_lulc_bb = hb.get_bounding_box(current_lulc_path)
                     pollination_sufficiency_output_path = os.path.join(p.cur_dir, 'pollination_sufficiency_' + p.model_label + '_' + str(year) + '.tif')
                     if not hb.path_exists(pollination_sufficiency_output_path):
-                        p.L.info('Running global_invest_main.make_poll_suff on LULC: ' + str(current_lulc_path) + ' and saving results to ' + str(pollination_sufficiency_output_path))
+                        hb.log('Running global_invest_main.make_poll_suff on LULC: ' + str(current_lulc_path) + ' and saving results to ' + str(pollination_sufficiency_output_path))
                         ecosystem_services_functions.pollination_sufficiency(current_lulc_path, pollination_sufficiency_output_path)
 
                     # Calculate zonal statistics for pollination sufficiency
@@ -222,7 +222,7 @@ def pollination_biophysical(p):
                     current_lulc_bb = hb.get_bounding_box(current_lulc_path)
                     pollination_sufficiency_output_path = os.path.join(p.cur_dir, 'pollination_sufficiency_' + p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(year) + '.tif')
                     if not hb.path_exists(pollination_sufficiency_output_path):
-                        p.L.info('Running global_invest_main.make_poll_suff on LULC: ' + str(current_lulc_path) + ' and saving results to ' + str(pollination_sufficiency_output_path))
+                        hb.log('Running global_invest_main.make_poll_suff on LULC: ' + str(current_lulc_path) + ' and saving results to ' + str(pollination_sufficiency_output_path))
                         ecosystem_services_functions.pollination_sufficiency(current_lulc_path, pollination_sufficiency_output_path)
 
                     vector_output_path = os.path.join(p.cur_dir, hb.path_replace_extension(pollination_sufficiency_output_path, '.gpkg'))
@@ -270,7 +270,7 @@ def pollination_economic(p):
 
         for index, row in p.scenarios_df.iterrows():
             seals_utils.assign_df_row_to_object_attributes(p, row)
-            p.L.info('Calculating pollination_economic on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
+            hb.log('Calculating pollination_economic on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
 
             if p.scenario_type == 'baseline':
                 for year in p.base_years:
