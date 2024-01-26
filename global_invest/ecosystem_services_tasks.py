@@ -117,44 +117,45 @@ def carbon_storage_economic(p):
     p.carbon_storage_shockfile_csv_path = os.path.join(p.cur_dir, 'carbon_storage_shockfile.csv')
 
     if p.run_this:              
+        
+        if not hb.path_exists(p.carbon_storage_shockfile_csv_path):      
+            carbon_df = pd.read_csv(p.carbon_storage_csv_path)
+        
+            # Iterate over the non-baseline scenarios and compare them with the appropriate baseline 
+            # to generate percent change.
+            shock_df = pd.DataFrame(carbon_df['generated_ids'])
+            for index, row in p.scenarios_df.iterrows():
+                seals_utils.assign_df_row_to_object_attributes(p, row)
+                hb.log('Calculating carbon storage shockfile on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
+        
+                if p.scenario_type != 'baseline':
+                    print('Analyzing', p.scenario_type, 'which has a baseline scenario of', p.baseline_reference_label)
+                            
+                    for year_c, year in enumerate(p.years):
+
+                        current_scenario_label = p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(year)   
                         
-        carbon_df = pd.read_csv(p.carbon_storage_csv_path)
-    
-        # Iterate over the non-baseline scenarios and compare them with the appropriate baseline 
-        # to generate percent change.
-        shock_df = pd.DataFrame(carbon_df['generated_ids'])
-        for index, row in p.scenarios_df.iterrows():
-            seals_utils.assign_df_row_to_object_attributes(p, row)
-            hb.log('Calculating carbon storage shockfile on ' + str(index) + ' of ' + str(len(p.scenarios_df)))
-    
-            if p.scenario_type != 'baseline':
-                print('Analyzing', p.scenario_type, 'which has a baseline scenario of', p.baseline_reference_label)
-                        
-                for year_c, year in enumerate(p.years):
+                        # Get the label for the previous scenario (tricky if it's the first scenario year, then we need to use the baseline)
+                        if year_c == 0:
+                            previous_year = p.key_base_year
+                            row = p.scenarios_df.loc[p.scenarios_df['scenario_label'] == p.baseline_reference_label]
+                            current_model_label = row['model_label'].values[0]
+                            previous_scenario_label = current_model_label + '_' + str(previous_year)                        
+                        else:
+                            previous_year = p.years[year_c - 1]
+                            previous_scenario_label = p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(previous_year)   
 
-                    current_scenario_label = p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(year)   
-                    
-                    # Get the label for the previous scenario (tricky if it's the first scenario year, then we need to use the baseline)
-                    if year_c == 0:
-                        previous_year = p.key_base_year
-                        row = p.scenarios_df.loc[p.scenarios_df['scenario_label'] == p.baseline_reference_label]
-                        current_model_label = row['model_label'].values[0]
-                        previous_scenario_label = current_model_label + '_' + str(previous_year)                        
-                    else:
-                        previous_year = p.years[year_c - 1]
-                        previous_scenario_label = p.exogenous_label + '_' + p.climate_label + '_' + p.model_label + '_' + p.counterfactual_label + '_' + str(previous_year)   
-
-                    previous_carbon_label = 'carbon_Mg_per_ha_' + previous_scenario_label + '_sums'
-                    current_carbon_label = 'carbon_Mg_per_ha_' +current_scenario_label + '_sums'
-                    new_label = 'carbon_shock_' + current_scenario_label
+                        previous_carbon_label = 'carbon_Mg_per_ha_' + previous_scenario_label + '_sums'
+                        current_carbon_label = 'carbon_Mg_per_ha_' +current_scenario_label + '_sums'
+                        new_label = 'carbon_shock_' + current_scenario_label
 
 
-                    a = (carbon_df[current_carbon_label] - carbon_df[previous_carbon_label]) / carbon_df[previous_carbon_label]
-                    carbon_df[new_label] = a
-                    subset_df = carbon_df[['generated_ids', new_label]]
-                    shock_df = hb.df_merge(shock_df, subset_df, on='generated_ids', verbose=True)
+                        a = (carbon_df[current_carbon_label] - carbon_df[previous_carbon_label]) / carbon_df[previous_carbon_label]
+                        carbon_df[new_label] = a
+                        subset_df = carbon_df[['generated_ids', new_label]]
+                        shock_df = hb.df_merge(shock_df, subset_df, on='generated_ids', verbose=True)
 
-        shock_df.to_csv(p.carbon_storage_shockfile_csv_path, index=False)
+            shock_df.to_csv(p.carbon_storage_shockfile_csv_path, index=False)
 
             
        
