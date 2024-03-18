@@ -34,24 +34,16 @@ def write_carbon_table_to_array(
 
     cdef np.ndarray[np.float32_t, ndim=2] output_carbon = np.zeros((n_rows, n_cols), dtype=np.float32)
 
-    start = time.time()
-    # print('starting cython loop', start)
+
     for cr in range(n_rows):
-        # if cr % 10 == 0:
-            # print(cr)
+
         for cc in range(n_cols):
             c_lulc_class = lulc_array[cr, cc]
             c_carbon_zone = carbon_zones_array[cr, cc]
             if c_carbon_zone > 0 and c_lulc_class > 0:
-                # print('c_lulc_class', c_lulc_class)
-                # print('c_carbon_zone', c_carbon_zone)
-                # print('c_lulc_class[cr, cc]', c_lulc_class)
-                # lookup_r_id =col_names[c_lulc_class]
-                # print('c_carbon_zone c_lulc_class', c_carbon_zone, c_lulc_class)
-                # print('row_names[c_carbon_zone], col_names[c_lulc_class]', row_names[c_carbon_zone], col_names[c_lulc_class])
+
                 try:
                     output_carbon[cr, cc] = lookup_table[row_names[c_carbon_zone], col_names[c_lulc_class]]
                 except:
                     pass
-    # print('ending cython loop', str(time.time() - start))
     return output_carbon
