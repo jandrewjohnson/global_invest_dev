@@ -3,7 +3,9 @@ import hazelbean as hb
 import seals.seals_utils as seals_utils
 import pandas as pd
 import global_invest
+import numpy as np
 from global_invest import ecosystem_services_functions
+import dask
 # from seals import seals_utils
 
 def ecosystem_services(p):
@@ -59,7 +61,8 @@ def carbon_storage_biophysical(p):
                     csvs_to_merge.append(csv_output_path)
                     gpkgs_to_merge.append(vector_output_path)                                                  
                     
-                    if not hb.path_exists(vector_output_path):
+                    skip = False
+                    if not skip and not hb.path_exists(vector_output_path):
 
                         gdf = hb.zonal_statistics(carbon_Mg_per_ha_output_path,
                                 p.aoi,
@@ -95,7 +98,8 @@ def carbon_storage_biophysical(p):
                     csvs_to_merge.append(csv_output_path)
                     gpkgs_to_merge.append(vector_output_path)                                                  
                     
-                    if not hb.path_exists(vector_output_path):
+                    skip = False
+                    if not skip and not hb.path_exists(vector_output_path):
 
                         gdf = hb.zonal_statistics(carbon_Mg_per_ha_output_path,
                                 p.aoi,
@@ -105,8 +109,9 @@ def carbon_storage_biophysical(p):
                                 vector_columns_to_keep = 'just_id',
                                 csv_output_path=csv_output_path,
                                 vector_output_path=vector_output_path)
-                            
-        if not hb.path_exists(p.carbon_storage_csv_path):
+        skip = False
+                           
+        if not skip and not hb.path_exists(p.carbon_storage_csv_path):
             hb.df_merge_list_of_csv_paths(csvs_to_merge, p.carbon_storage_csv_path, on='generated_ids', column_suffix='ignore', verbose=False)
 
 
