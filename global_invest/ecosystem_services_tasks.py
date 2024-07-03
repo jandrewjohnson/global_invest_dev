@@ -158,7 +158,7 @@ def carbon_storage_economic(p):
                         a = (carbon_df[current_carbon_label] - carbon_df[previous_carbon_label]) / carbon_df[previous_carbon_label]
                         carbon_df[new_label] = a
                         subset_df = carbon_df[['generated_ids', new_label]]
-                        shock_df = hb.df_merge(shock_df, subset_df, on='generated_ids', verbose=True)
+                        shock_df = hb.df_merge(shock_df, subset_df, on='generated_ids', verbose=False)
 
             shock_df.to_csv(p.carbon_storage_shockfile_csv_path, index=False)
 
