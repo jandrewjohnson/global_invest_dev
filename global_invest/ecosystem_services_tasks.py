@@ -287,7 +287,7 @@ def pollination_economic(p):
 
                     crop_value_baseline_output_path = os.path.join(p.cur_dir, 'crop_value_' + p.model_label + '_' + str(year) + '.tif')
 
-                    # START HERE: Figure out how to properly load baseline and scenario to calculate shock from previous period.
+                    # TODOOO: Figure out how to properly load baseline and scenario to calculate shock from previous period.
 
                     
                     # crop_value_baseline_output_path = os.path.join(p.cur_dir, 'crop_value_' + p.model_label + '_' + str(year) + '.tif')
@@ -415,7 +415,7 @@ def pollination_economic(p):
                                         np.where((max_loss > 0) & (suff >= sufficient_pollination_threshold) & (lulc == 2), baseline_value, -9999.)), output_path=crop_value_pollinator_adjusted_path)
 
 
-                        # START HERE: Continue thinking about what the right shock is overall. Is it the average on NEW land? Or the aggregate value
+                        # TODOOO: Continue thinking about what the right shock is overall. Is it the average on NEW land? Or the aggregate value
                         # To isolate the effect, maybe calculate the average value of crop loss on cells that are cultivated in both scenarios? Start on a dask function that does that?
 
                     if not hb.path_exists(current_output_excel_path):
@@ -653,7 +653,7 @@ def pollination_economic(p):
                         # generated_scenario_label = 'gtap2_' + luh_scenario_label + '_' + str(scenario_year) + '_' + policy_scenario_label + '_existing_ag'
                         # merged_df[generated_scenario_label + '_mean'] = merged_df[generated_scenario_label_existing_ag + '_sum'] / merged_df[baseline_generated_scenario_label_existing_ag + '_count']
 
-                        # START HERE: ALMOST got the full sim ready to run on the new pollination method but didn't finish getting the averages here calculated.
+                        # TODOOO: ALMOST got the full sim ready to run on the new pollination method but didn't finish getting the averages here calculated.
 
                         # generated_scenario_label_existing_ag = 'gtap2_' + luh_scenario_label + '_' + str(scenario_year) + '_' + policy_scenario_label + '_existing_ag'
                         # generated_label = 'gtap2_' + luh_scenario_label + '_' + str(scenario_year) + '_' + policy_scenario_label + '_pollination_shock'
