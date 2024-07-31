@@ -3,14 +3,128 @@ import hazelbean as hb
 import seals.seals_utils as seals_utils
 import pandas as pd
 import global_invest
+import numpy as np
 from global_invest import ecosystem_services_functions
+import dask
 # from seals import seals_utils
 
+def project_aoi(p):
+    
+    p.fine_resolution_degrees = hb.get_cell_size_from_path(p.base_year_lulc_path)
+    p.coarse_resolution_degrees = hb.get_cell_size_from_path(p.region_ids_coarse_path)
+    
+    p.fine_resolution_arcseconds = hb.pyramid_compatible_resolution_to_arcseconds[p.fine_resolution_degrees]
+    p.coarse_resolution_arcseconds = hb.pyramid_compatible_resolution_to_arcseconds[p.coarse_resolution_degrees]
+    
+    p.processing_resolution_arcseconds = p.coarse_resolution_arcseconds
+
+    p.ha_per_cell_coarse_path = p.get_path(hb.ha_per_cell_ref_paths[p.coarse_resolution_arcseconds])
+    p.ha_per_cell_fine_path = p.get_path(hb.ha_per_cell_ref_paths[p.fine_resolution_arcseconds])
+    
+    # Process p.aoi to set the regional_vector, bb, bb_exact, and aoi_ha_per_cell_paths
+    if isinstance(p.aoi, str):
+        if p.aoi == 'global':
+            p.aoi_path = p.global_regions_vector_path
+            p.aoi_label = 'global'
+            p.bb_exact = hb.global_bounding_box
+            p.bb = p.bb_exact
+
+            p.aoi_ha_per_cell_coarse_path = p.ha_per_cell_coarse_path
+            p.aoi_ha_per_cell_fine_path = p.ha_per_cell_fine_path
+        
+        elif isinstance(p.aoi, str):
+            if len(p.aoi) == 3: # Then it might be an ISO3 code. For now, assume so.
+                p.aoi_path = os.path.join(p.cur_dir, 'aoi_' + str(p.aoi) + '.gpkg')
+                p.aoi_label = p.aoi
+            else: # Then it's a path to a shapefile.
+                p.aoi_path = p.aoi
+                p.aoi_label = os.path.splitext(os.path.basename(p.aoi))[0]
+
+            for current_aoi_path in hb.list_filtered_paths_nonrecursively(p.cur_dir, include_strings='aoi'):
+                if current_aoi_path != p.aoi_path:
+                    raise NameError('There is more than one AOI in the current directory. This means you are trying to run a project in a new area of interst in a project that was already run in a different area of interest. This is not allowed! You probably want to create a new project directory and set the p = hb.ProjectFlow(...) line to point to the new directory.')
+
+            if not hb.path_exists(p.aoi_path):
+                hb.extract_features_in_shapefile_by_attribute(p.global_regions_vector_path, p.aoi_path, 'eemarine_r566_label', p.aoi.upper())
+            
+            p.bb_exact = hb.spatial_projection.get_bounding_box(p.aoi_path)
+            p.bb = hb.pyramids.get_pyramid_compatible_bb_from_vector_and_resolution(p.aoi_path, p.processing_resolution_arcseconds)
+            
+            
+            # Create a PROJECT-SPECIFIC version of these clipped ones.
+            p.aoi_ha_per_cell_fine_path = os.path.join(p.cur_dir, 'pyramids', 'aoi_ha_per_cell_fine.tif')
+            if not hb.path_exists(p.aoi_ha_per_cell_fine_path):
+                hb.create_directories(p.aoi_ha_per_cell_fine_path)
+                
+                #  make ha_per_cell_paths not be a dict but a project level ha_per_cell_fine_path etc
+                hb.clip_raster_by_bb(p.ha_per_cell_fine_path, p.bb, p.aoi_ha_per_cell_fine_path)
+            
+            p.aoi_ha_per_cell_coarse_path = os.path.join(p.cur_dir, 'pyramids', 'aoi_ha_per_cell_coarse.tif')
+            if not hb.path_exists(p.aoi_ha_per_cell_coarse_path):
+                hb.create_directories(p.aoi_ha_per_cell_coarse_path)
+                hb.clip_raster_by_bb(p.ha_per_cell_coarse_path, p.bb, p.aoi_ha_per_cell_coarse_path)
+        
+            
+            
+        else:
+            p.bb_exact = hb.spatial_projection.get_bounding_box(p.aoi_path)
+            p.bb = hb.pyramids.get_pyramid_compatible_bb_from_vector_and_resolution(p.aoi_path, p.processing_resolution_arcseconds)
+
+            # Create a PROJECT-SPECIFIC version of these clipped ones.
+            p.aoi_ha_per_cell_fine_path = os.path.join(p.cur_dir, 'pyramids', 'aoi_ha_per_cell_fine.tif')
+            if not hb.path_exists(p.aoi_ha_per_cell_fine_path):
+                hb.create_directories(p.aoi_ha_per_cell_fine_path)
+                hb.clip_raster_by_bb(p.ha_per_cell_paths[p.fine_resolution_arcseconds], p.bb, p.aoi_ha_per_cell_fine_path)
+            
+            p.aoi_ha_per_cell_coarse_path = os.path.join(p.cur_dir, 'pyramids', 'aoi_ha_per_cell_coarse.tif')
+            if not hb.path_exists(p.aoi_ha_per_cell_coarse_path):
+                hb.create_directories(p.aoi_ha_per_cell_coarse_path)
+                hb.clip_raster_by_bb(p.ha_per_cell_paths[p.coarse_resolution_arcseconds], p.bb, p.aoi_ha_per_cell_coarse_path)
+                    
+    else:
+        raise NameError('Unable to interpret p.aoi.')
+
+    
 def ecosystem_services(p):
     pass # Just to generate a folder
 
+def aoi_inputs(p):
+    p.carbon_zones_path = p.get_path("global_invest", "carbon", 'carbon_zones_rasterized.tif')
+    if p.aoi != 'global':
+        p.aoi_carbon_zones_path = os.path.join(p.cur_dir, 'carbon_zones.tif')                    
+        if not hb.path_exists(p.aoi_carbon_zones_path):
+            hb.clip_raster_by_bb(p.carbon_zones_path, p.bb, p.aoi_carbon_zones_path)
+        p.aoi_base_year_lulc_path = os.path.join(p.cur_dir, 'lulc.tif')                    
+        if not hb.path_exists(p.aoi_base_year_lulc_path):
+            hb.clip_raster_by_bb(p.base_year_lulc_path, p.bb, p.aoi_base_year_lulc_path)
+    else:
+        # Then it's global so create a shortcut to the base_data_dir
+        hb.create_shortcut('base_data_shortcut', p.base_data_dir)
+        p.aoi_carbon_zones_path = p.carbon_zones_path    
+        p.aoi_base_year_lulc_path = p.base_year_lulc_path    
+    
+def carbon_storage_simple(p):
+    """Run a single version of calculating carbon storage present from the project's base_year LULC maps."""
+
+    # Input Paths
+    p.exhaustive_carbon_table_path = p.get_path("global_invest", "carbon", "exhaustive_carbon_table.csv")
+
+
+    # Calculate zonal statistics
+    p.carbon_storage_Mg_per_ha_path = os.path.join(p.cur_dir, 'carbon_storage_Mg_per_ha.csv')
+
+
+    carbon_Mg_per_ha_output_path = os.path.join(p.cur_dir, 'carbon_Mg_per_ha.tif')
+    if not hb.path_exists(carbon_Mg_per_ha_output_path):
+        ecosystem_services_functions.carbon_storage_ipcc_tier_1(p.aoi_base_year_lulc_path, p.aoi_carbon_zones_path, p.exhaustive_carbon_table_path, carbon_Mg_per_ha_output_path)
+
+    # Calculate zonal statistics
+    p.carbon_storage_csv_path = os.path.join(p.cur_dir, 'carbon_storage.csv')
+    if not hb.path_exists(p.carbon_storage_csv_path):
+        5
+
 def carbon_storage_biophysical(p):
-    """Calculate carbon storage presentfrom LULC maps."""
+    """Iterate over a scenarios file to calculate carbon storage presentfrom LULC maps."""
 
     p.exhaustive_carbon_table_path = os.path.join(p.base_data_dir, "global_invest", "carbon", "exhaustive_carbon_table.csv")
 
@@ -59,7 +173,8 @@ def carbon_storage_biophysical(p):
                     csvs_to_merge.append(csv_output_path)
                     gpkgs_to_merge.append(vector_output_path)                                                  
                     
-                    if not hb.path_exists(vector_output_path):
+                    skip = False
+                    if not skip and not hb.path_exists(vector_output_path):
 
                         gdf = hb.zonal_statistics(carbon_Mg_per_ha_output_path,
                                 p.aoi,
@@ -95,7 +210,8 @@ def carbon_storage_biophysical(p):
                     csvs_to_merge.append(csv_output_path)
                     gpkgs_to_merge.append(vector_output_path)                                                  
                     
-                    if not hb.path_exists(vector_output_path):
+                    skip = False
+                    if not skip and not hb.path_exists(vector_output_path):
 
                         gdf = hb.zonal_statistics(carbon_Mg_per_ha_output_path,
                                 p.aoi,
@@ -105,8 +221,9 @@ def carbon_storage_biophysical(p):
                                 vector_columns_to_keep = 'just_id',
                                 csv_output_path=csv_output_path,
                                 vector_output_path=vector_output_path)
-                            
-        if not hb.path_exists(p.carbon_storage_csv_path):
+        skip = False
+                           
+        if not skip and not hb.path_exists(p.carbon_storage_csv_path):
             hb.df_merge_list_of_csv_paths(csvs_to_merge, p.carbon_storage_csv_path, on='generated_ids', column_suffix='ignore', verbose=False)
 
 
@@ -153,7 +270,7 @@ def carbon_storage_economic(p):
                         a = (carbon_df[current_carbon_label] - carbon_df[previous_carbon_label]) / carbon_df[previous_carbon_label]
                         carbon_df[new_label] = a
                         subset_df = carbon_df[['generated_ids', new_label]]
-                        shock_df = hb.df_merge(shock_df, subset_df, on='generated_ids', verbose=True)
+                        shock_df = hb.df_merge(shock_df, subset_df, on='generated_ids', verbose=False)
 
             shock_df.to_csv(p.carbon_storage_shockfile_csv_path, index=False)
 
@@ -282,7 +399,7 @@ def pollination_economic(p):
 
                     crop_value_baseline_output_path = os.path.join(p.cur_dir, 'crop_value_' + p.model_label + '_' + str(year) + '.tif')
 
-                    # START HERE: Figure out how to properly load baseline and scenario to calculate shock from previous period.
+                    # TODOOO: Figure out how to properly load baseline and scenario to calculate shock from previous period.
 
                     
                     # crop_value_baseline_output_path = os.path.join(p.cur_dir, 'crop_value_' + p.model_label + '_' + str(year) + '.tif')
@@ -410,7 +527,7 @@ def pollination_economic(p):
                                         np.where((max_loss > 0) & (suff >= sufficient_pollination_threshold) & (lulc == 2), baseline_value, -9999.)), output_path=crop_value_pollinator_adjusted_path)
 
 
-                        # START HERE: Continue thinking about what the right shock is overall. Is it the average on NEW land? Or the aggregate value
+                        # TODOOO: Continue thinking about what the right shock is overall. Is it the average on NEW land? Or the aggregate value
                         # To isolate the effect, maybe calculate the average value of crop loss on cells that are cultivated in both scenarios? Start on a dask function that does that?
 
                     if not hb.path_exists(current_output_excel_path):
@@ -648,7 +765,7 @@ def pollination_economic(p):
                         # generated_scenario_label = 'gtap2_' + luh_scenario_label + '_' + str(scenario_year) + '_' + policy_scenario_label + '_existing_ag'
                         # merged_df[generated_scenario_label + '_mean'] = merged_df[generated_scenario_label_existing_ag + '_sum'] / merged_df[baseline_generated_scenario_label_existing_ag + '_count']
 
-                        # START HERE: ALMOST got the full sim ready to run on the new pollination method but didn't finish getting the averages here calculated.
+                        # TODOOO: ALMOST got the full sim ready to run on the new pollination method but didn't finish getting the averages here calculated.
 
                         # generated_scenario_label_existing_ag = 'gtap2_' + luh_scenario_label + '_' + str(scenario_year) + '_' + policy_scenario_label + '_existing_ag'
                         # generated_label = 'gtap2_' + luh_scenario_label + '_' + str(scenario_year) + '_' + policy_scenario_label + '_pollination_shock'

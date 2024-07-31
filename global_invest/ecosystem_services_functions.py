@@ -70,7 +70,7 @@ def carbon_storage_ipcc_tier_1(lulc_path, carbon_zones_path, carbon_table_path, 
     lookup_table_df = pd.read_csv(carbon_table_path, index_col=0)
     lookup_table = np.float32(lookup_table_df.values)
 
-    print('Running global invest carbon model with look-up table: ' + str(lookup_table_df))
+    print('Running global invest carbon model with look-up table.')
     row_names = {int(v): int(c) for c, v in enumerate(lookup_table_df.index)}
     col_names = {int(v): int(c) for c, v in enumerate(lookup_table_df.columns)}
 
