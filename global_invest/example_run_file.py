@@ -29,7 +29,7 @@ def build_task_tree(p):
     p.project_aoi_task = p.add_task(ecosystem_services_tasks.project_aoi) # Clips the global_regions_vector to the aoi selected   
     p.aoi_inputs_task = p.add_task(ecosystem_services_tasks.aoi_inputs) # Clips global inputs based on the aoi
     p.ecosystem_services_task = p.add_task(ecosystem_services_tasks.ecosystem_services) # Empty task just to contain all the other ES tasks (by being set as their parent task)
-    p.carbon_storage_biophysical_task = p.add_task(ecosystem_services_tasks.example_ecosystem_services_invest_task, parent=p.ecosystem_services_task) # Actually implements the model logic
+    p.carbon_storage_biophysical_invest_task = p.add_task(ecosystem_services_tasks.carbon_storage_biophysical_invest, parent=p.ecosystem_services_task) # Actually implements the model logic
 
 # Build the task tree and excute it!
 build_task_tree(p)
