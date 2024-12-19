@@ -29,7 +29,9 @@ def build_task_tree(p):
     p.project_aoi_task = p.add_task(ecosystem_services_tasks.project_aoi)    
     p.aoi_inputs_task = p.add_task(ecosystem_services_tasks.aoi_inputs)    
     p.ecosystem_services_task = p.add_task(ecosystem_services_tasks.ecosystem_services)
-    p.carbon_storage_biophysical_task = p.add_task(ecosystem_services_tasks.carbon_storage_simple, parent=p.ecosystem_services_task)
+    p.carbon_storage_simple_task = p.add_task(ecosystem_services_tasks.carbon_storage_simple, parent=p.ecosystem_services_task) # Just runs on the base year to prove its working
+    p.carbon_storage_biophysical_task = p.add_task(ecosystem_services_tasks.carbon_storage_biophysical, parent=p.ecosystem_services_task) # Requires a scenarios.csv becuase calcualtes differences
+    
 
 # Build the task tree and excute it!
 build_task_tree(p)

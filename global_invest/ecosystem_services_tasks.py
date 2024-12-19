@@ -166,7 +166,7 @@ def carbon_storage_simple(p):
     if not hb.path_exists(p.carbon_storage_csv_path):
         5
 
-def carbon_storage_biophysical(p):
+def carbon_storage_biophysical_for_seals_scenarios(p):
     """Iterate over a scenarios file to calculate carbon storage presentfrom LULC maps."""
 
     p.exhaustive_carbon_table_path = os.path.join(p.base_data_dir, "global_invest", "carbon", "exhaustive_carbon_table.csv")
@@ -182,6 +182,9 @@ def carbon_storage_biophysical(p):
     # but also i would need to specify the difference between bb_pyramid vs bb_vector. Think about this.
     # Also note that the bb_pyramid would be determined by the processing_resolution
 
+    # if not hasattr(p, 'scenarios_df'):
+    #     p.scenarios_df = hb.get_dummy_scenarios_df()
+        
     if p.run_this:      
         csvs_to_merge = []
         gpkgs_to_merge = []
