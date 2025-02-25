@@ -23,6 +23,8 @@ p.base_data_dir = os.path.join(p.user_dir, 'Files', 'base_data')
 p.aoi = 'RWA'
 p.base_year_lulc_path = p.get_path('lulc/esa/lulc_esa_2017.tif') # Defines the fine_resolution
 p.region_ids_coarse_path = p.get_path('cartographic/ee/id_rasters/eemarine_r566_ids_900sec.tif') # Defines the coarse_resolution
+
+# FOR COMPATIBILITY WITH SCENARIOS.CSV, CONSIDER renaming this regions_vector_path. TODOO
 p.global_regions_vector_path = p.get_path('cartographic/ee/eemarine_r566_correspondence.gpkg') # Will be used to create the aoi vector
 
 def build_task_tree(p):

@@ -15,8 +15,12 @@ import natcap.invest.utils
 
 def project_aoi(p):
     
-    p.fine_resolution_degrees = hb.get_cell_size_from_path(p.base_year_lulc_path)
-    p.coarse_resolution_degrees = hb.get_cell_size_from_path(p.region_ids_coarse_path)
+    # If fine_resolution_degrees not yet a ProjectFlow attribute, then set based on path
+    if not hasattr(p, 'fine_resolution_degrees'):        
+        p.fine_resolution_degrees = hb.get_cell_size_from_path(p.base_year_lulc_path)
+        
+    if not hasattr(p, 'coarse_resolution_degrees'):
+        p.coarse_resolution_degrees = hb.get_cell_size_from_path(p.region_ids_coarse_path)
     
     p.fine_resolution_arcseconds = hb.pyramid_compatible_resolution_to_arcseconds[p.fine_resolution_degrees]
     p.coarse_resolution_arcseconds = hb.pyramid_compatible_resolution_to_arcseconds[p.coarse_resolution_degrees]
@@ -50,7 +54,7 @@ def project_aoi(p):
                     raise NameError('There is more than one AOI in the current directory. This means you are trying to run a project in a new area of interst in a project that was already run in a different area of interest. This is not allowed! You probably want to create a new project directory and set the p = hb.ProjectFlow(...) line to point to the new directory.')
 
             if not hb.path_exists(p.aoi_path):
-                hb.extract_features_in_shapefile_by_attribute(p.global_regions_vector_path, p.aoi_path, 'eemarine_r566_label', p.aoi.upper())
+                hb.extract_features_in_shapefile_by_attribute(p.regions_vector_path, p.aoi_path, p.regions_column_label, p.aoi.upper())
             
             p.bb_exact = hb.spatial_projection.get_bounding_box(p.aoi_path)
             p.bb = hb.pyramids.get_pyramid_compatible_bb_from_vector_and_resolution(p.aoi_path, p.processing_resolution_arcseconds)
@@ -335,6 +339,7 @@ def pollination_biophysical(p):
     # polygon (which would in principle only cover 1 tile. This is because the definition of BB gets confused
     # but also i would need to specify the difference between bb_pyramid vs bb_vector. Think about this.
     # Also note that the bb_pyramid would be determined by the processing_resolution
+
 
 
     if p.run_this:     
