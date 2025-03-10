@@ -203,7 +203,7 @@ def polygonalize_raster(raster_path, target_vector_path):
     target_layer = vector.CreateLayer(
         layer_name, raster_srs, ogr.wkbPolygon)
     target_layer.CreateField(ogr.FieldDefn('pix_val', ogr.OFTInteger))
-    rasterize_callback = pygeoprocessing._make_logger_callback(
+    rasterize_callback = pygeoprocessing.hb.make_gdal_callback(
         "polygonalizing %.1f%% complete")
     gdal.Polygonize(band, None, target_layer, 0, callback=rasterize_callback)
 

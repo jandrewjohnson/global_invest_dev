@@ -499,30 +499,30 @@ def unzip_file(zipfile_path, target_dir, touchfile_path):
         touchfile.write(f'unzipped {zipfile_path}')
 
 
-def _make_logger_callback(message):
-    """Build a timed logger callback that prints `message` replaced.
-    Parameters:
-        message (string): a string that expects a %f placement variable,
-            for % complete.
-    Returns:
-        Function with signature:
-            logger_callback(df_complete, psz_message, p_progress_arg)
-    """
-    def logger_callback(df_complete, psz_message, p_progress_arg):
-        """Log updates using GDAL API for callbacks."""
-        try:
-            current_time = time.time()
-            if ((current_time - logger_callback.last_time) > 5.0 or
-                    (df_complete == 1.0 and
-                     logger_callback.total_time >= 5.0)):
-                LOGGER.info(message, df_complete * 100)
-                logger_callback.last_time = current_time
-                logger_callback.total_time += current_time
-        except AttributeError:
-            logger_callback.last_time = time.time()
-            logger_callback.total_time = 0.0
+# def make_gdal_callback(message):
+#     """Build a timed logger callback that prints `message` replaced.
+#     Parameters:
+#         message (string): a string that expects a %f placement variable,
+#             for % complete.
+#     Returns:
+#         Function with signature:
+#             logger_callback(df_complete, psz_message, p_progress_arg)
+#     """
+#     def logger_callback(df_complete, psz_message, p_progress_arg):
+#         """Log updates using GDAL API for callbacks."""
+#         try:
+#             current_time = time.time()
+#             if ((current_time - logger_callback.last_time) > 5.0 or
+#                     (df_complete == 1.0 and
+#                      logger_callback.total_time >= 5.0)):
+#                 LOGGER.info(message, df_complete * 100)
+#                 logger_callback.last_time = current_time
+#                 logger_callback.total_time += current_time
+#         except AttributeError:
+#             logger_callback.last_time = time.time()
+#             logger_callback.total_time = 0.0
 
-    return logger_callback
+#     return logger_callback
 
 
 

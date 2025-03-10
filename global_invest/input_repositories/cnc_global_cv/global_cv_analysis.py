@@ -1569,7 +1569,7 @@ def clip_raster(
             'TILED=YES', 'BIGTIFF=YES', 'COMPRESS=LZW',
             'BLOCKXSIZE=256', 'BLOCKYSIZE=256'],
         outputBounds=buffered_bounding_box,
-        callback=pygeoprocessing._make_logger_callback(
+        callback=pygeoprocessing.hb.make_gdal_callback(
             "Translate %.1f%% complete"))
     base_raster = None
 

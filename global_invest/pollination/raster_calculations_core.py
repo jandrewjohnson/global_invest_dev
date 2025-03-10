@@ -7,6 +7,7 @@ import re
 import tempfile
 import time
 import urllib.request
+import hazelbean as hb
 
 from osgeo import gdal
 from retrying import retry
@@ -271,49 +272,49 @@ def build_overviews(raster_path):
 
     gdal.SetConfigOption('COMPRESS_OVERVIEW', 'LZW')
     raster.BuildOverviews(
-        'average', overview_levels, callback=_make_logger_callback(
+        'average', overview_levels, callback=hb.make_gdal_callback(
             'build overview for ' + os.path.basename(raster_path) +
             '%.2f%% complete'))
 
 
-def _make_logger_callback(message):
-    """Build a timed logger callback that prints ``message`` replaced.
+# def hb.make_gdal_callback(message):
+#     """Build a timed logger callback that prints ``message`` replaced.
 
-    Parameters:
-        message (string): a string that expects 2 placement %% variables,
-            first for % complete from ``df_complete``, second from
-            ``p_progress_arg[0]``.
+#     Parameters:
+#         message (string): a string that expects 2 placement %% variables,
+#             first for % complete from ``df_complete``, second from
+#             ``p_progress_arg[0]``.
 
-    Returns:
-        Function with signature:
-            logger_callback(df_complete, psz_message, p_progress_arg)
+#     Returns:
+#         Function with signature:
+#             logger_callback(df_complete, psz_message, p_progress_arg)
 
-    """
-    def logger_callback(df_complete, _, p_progress_arg):
-        """Argument names come from the GDAL API for callbacks."""
-        try:
-            current_time = time.time()
-            if ((current_time - logger_callback.last_time) > 5.0 or
-                    (df_complete == 1.0 and
-                     logger_callback.total_time >= 5.0)):
-                # In some multiprocess applications I was encountering a
-                # ``p_progress_arg`` of None. This is unexpected and I suspect
-                # was an issue for some kind of GDAL race condition. So I'm
-                # guarding against it here and reporting an appropriate log
-                # if it occurs.
-                if p_progress_arg:
-                    LOGGER.info(message, df_complete * 100, p_progress_arg[0])
-                else:
-                    LOGGER.info(
-                        'p_progress_arg is None df_complete: %s, message: %s',
-                        df_complete, message)
-                logger_callback.last_time = current_time
-                logger_callback.total_time += current_time
-        except AttributeError:
-            logger_callback.last_time = time.time()
-            logger_callback.total_time = 0.0
+#     """
+#     def logger_callback(df_complete, _, p_progress_arg):
+#         """Argument names come from the GDAL API for callbacks."""
+#         try:
+#             current_time = time.time()
+#             if ((current_time - logger_callback.last_time) > 5.0 or
+#                     (df_complete == 1.0 and
+#                      logger_callback.total_time >= 5.0)):
+#                 # In some multiprocess applications I was encountering a
+#                 # ``p_progress_arg`` of None. This is unexpected and I suspect
+#                 # was an issue for some kind of GDAL race condition. So I'm
+#                 # guarding against it here and reporting an appropriate log
+#                 # if it occurs.
+#                 if p_progress_arg:
+#                     LOGGER.info(message, df_complete * 100, p_progress_arg[0])
+#                 else:
+#                     LOGGER.info(
+#                         'p_progress_arg is None df_complete: %s, message: %s',
+#                         df_complete, message)
+#                 logger_callback.last_time = current_time
+#                 logger_callback.total_time += current_time
+#         except AttributeError:
+#             logger_callback.last_time = time.time()
+#             logger_callback.total_time = 0.0
 
-    return logger_callback
+#     return logger_callback
 
 
 def _preprocess_rasters(
