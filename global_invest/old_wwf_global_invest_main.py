@@ -141,8 +141,9 @@ def carbon(lulc_path, carbon_zones_path, carbon_table_path, output_path):
 
     import gtap_invest
     import gtap_invest.global_invest
-    import gtap_invest.global_invest.carbon_biophysical
-    from gtap_invest.global_invest.carbon_biophysical import write_carbon_table_to_array
+    from global_invest import carbon_biophysical
+    from global_invest.carbon_storage import carbon_storage_ipcc_tier_1_cython
+    from global_invest.carbon_storage.carbon_storage_ipcc_tier_1_cython import write_carbon_table_to_array
     base_raster_path_band = [(lulc_path, 1), (carbon_zones_path, 1), (lookup_table, 'raw'), (row_names, 'raw'), (col_names, 'raw')]
     hb.raster_calculator_hb(base_raster_path_band, write_carbon_table_to_array, output_path, 6, -9999, hb.DEFAULT_GTIFF_CREATION_TUPLE_OPTIONS_HB)
 

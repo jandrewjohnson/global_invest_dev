@@ -482,7 +482,7 @@ def pollination_economic(p):
             crop_value_baseline = np.zeros(hb.get_shape_from_dataset_path(p.ha_per_cell_300sec_path))
             crop_value_no_pollination = np.zeros(hb.get_shape_from_dataset_path(p.ha_per_cell_300sec_path))
             for c, crop_name in enumerate(crop_names):
-                L.info('Calculating value yield effect from pollination for ' + str(crop_name) + ' with pollination dependence ' + str(pollination_dependence[c]))
+                hb.log('Calculating value yield effect from pollination for ' + str(crop_name) + ' with pollination dependence ' + str(pollination_dependence[c]))
                 crop_price_path = os.path.join(p.crop_prices_dir, crop_name + '_prices_per_ton.tif')
                 crop_price = hb.as_array(crop_price_path)
                 crop_price = np.where(crop_price > 0, crop_price, 0.0)
@@ -687,6 +687,7 @@ def pollination_economic(p):
                         rr = (z * 0.0) + r  # HACK. Dask.array.where was returning a standard xarray rather than a rioxarray. This dumb hack makes it inherit the rioxarray parameters of z
                         return rr
 
+                    crop_value_baseline_existing_ag_path = 'fix'
                     if not hb.path_exists(crop_value_baseline_existing_ag_path):
                         op_paths = [
                             baseline_crop_value_pollinator_adjusted_path,
@@ -855,6 +856,8 @@ def pollination_economic(p):
 
 
             # write to csv and gpkg
+            import geopandas as gpd
+            
             merged_df.to_csv(hb.suri(p.pollination_shock_csv_path, 'comprehensive'))
             gdf = gpd.read_file(p.gtap37_aez18_path)
             gdf = gdf.merge(merged_df, left_on='pyramid_id', right_index=True, how='outer')
