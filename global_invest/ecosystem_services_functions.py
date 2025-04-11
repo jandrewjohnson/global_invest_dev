@@ -31,7 +31,8 @@ import shapely.prepared
 import shapely.wkb
 import taskgraph
 
-L = hb.get_logger('global_invest')
+from hazelbean import config as hb_config
+L = hb_config.get_logger()
     
 recompile_cython = 0
 if recompile_cython:
