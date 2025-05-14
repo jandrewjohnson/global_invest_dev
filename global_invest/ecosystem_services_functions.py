@@ -62,6 +62,7 @@ BMP_LULC_CODES = [300]
 NODATA = -9999
 N_WORKERS = max(1, multiprocessing.cpu_count())
 
+# START HERE: on env2025a, i did a fresh mamba hazelbean install, then pip uninstall, then pip local install, then ran these tests. Troubleshoot rest of tests and what would be necessary to then run run_ntsp_cololmbia.py
 
 
 from global_invest.carbon_storage import carbon_storage_ipcc_tier_1_cython
